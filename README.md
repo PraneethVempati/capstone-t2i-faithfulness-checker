@@ -10,14 +10,30 @@ This repository contains my Spring 2026 Capstone project work on using **self-co
 ---
 
 ## Repository Structure
-├── src/ # Core source code (pipelines, evaluators, utilities)
-├── notebooks/ # Jupyter notebooks for experiments and demos
-├── scripts/ # CLI scripts for running evaluation, sweeps, exports
-├── data/ # Dataset pointers and metadata (do NOT commit large files)
-├── docs/ # Documentation (design notes, weekly notes, metric definitions)
-├── reports/ # Drafts and final report artifacts (PDF/LaTeX exports)
-├── assets/ # Images/figures used in docs and reports
-└── README.md # Project overview and navigation guide
+capstone-t2i-faithfulness-checker/
+│
+├── README.md
+├── requirements.txt
+│
+├── src/
+│   ├── generation.py
+│   ├── faithfulness.py
+│   ├── metrics.py
+│   └── benchmark.py
+│
+├── notebooks/
+│   ├── 01_single_image_evaluation.ipynb
+│   └── 02_benchmark_validation.ipynb
+│
+├── data/
+│   └── README.md
+│
+├── docs/
+│   ├── proposal.pdf
+│   └── presentation.pdf
+│
+└── reports/
+    └── final_report.pdf
 
 
 ### Folder Details
