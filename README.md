@@ -1,173 +1,120 @@
-# Text-to-Image Hallucination Evaluation and Faithfulness Benchmark
+# Faithfulness-Based Evaluation for Detecting Hallucinations in Text-to-Image Generation
 
-## Project Overview
-
-This project investigates hallucinations in text-to-image (T2I) generation models and studies how structured faithfulness evaluation and uncertainty-based signals can be used to detect semantic errors.
-
-The core goal is to evaluate whether generated images correctly reflect the content of their input prompts, and to validate whether faithfulness scores can be meaningfully backed by benchmark datasets containing caption–image ground truth pairs.
-
-Rather than claiming to solve hallucination detection, this project focuses on:
-
-- Constructing structured faithfulness checks (object existence, attributes, counts).
-- Measuring semantic alignment using CLIP-based similarity.
-- Validating evaluation scores against ground-truth caption–image datasets.
-- Analyzing strengths and limitations of proxy evaluation models.
-
-This repository contains all materials related to implementation, benchmarking, documentation, and reporting.
+**Author:** Praneeth Vempati | pvempati@ufl.edu | University of Florida  
+**Capstone Project** — AI Systems, 2026
 
 ---
 
-## Repository Structure
+## Overview
 
-The repository is organized as follows:
-│
-├── README.md
-├── requirements.txt
-│
-├── src/
-│   ├── generation.py
-│   ├── faithfulness.py
-│   ├── metrics.py
-│   └── benchmark.py
-│
+Text-to-image models frequently generate photo-realistic images that violate prompt
+semantics — producing wrong colors, missing objects, or broken spatial relations.
+These are called **visual hallucinations**.
+
+This project builds a **training-free, model-agnostic evaluation pipeline** that
+automatically detects hallucinations by decomposing text prompts into atomic visual
+claims and verifying each against the generated image using Visual Question Answering (VQA).
+
+---
+
+## Key Features
+
+- **VQA-based faithfulness scoring** — decomposes prompts into existence, color, count, spatial, and action checks
+- **CLIP semantic similarity** — secondary alignment signal
+- **Self-consistency uncertainty signal** — generates N images per prompt and measures score variance
+- **POPE benchmark** — validates against 9,000 binary hallucination labels
+- **OK-VQA benchmark** — validates VQA pipeline on 9,009 real images with human answers
+- **Flickr30k large-scale benchmark** — compares GT vs generated across 1,500+ examples
+- **ROC-AUC validation** — rigorously treats faithfulness as a binary hallucination classifier
+- **Five-tab Gradio interface** — publicly deployed, supports SD v1.5 and SDXL-Turbo
+
+---
+
+## System Architecture
+
+Prompt → Image Generation (SD v1.5 / SDXL-Turbo) → Smart Prompt Parser (objects, colors, counts, spatial, actions) → BLIP-VQA Verification → Faithfulness Score [0–1] → Risk Label + CLIP Score
+
+**Self-Consistency Branch:**
+
+Same Prompt → N independent generations → per-image scores → variance → uncertainty signal
+
+
+---
+
+## Models Used
+
+| Component | Model |
+|-----------|-------|
+| Image Generation | SD v1.5 / SDXL-Turbo |
+| VQA Verification | BLIP-VQA (Salesforce/blip-vqa-base) |
+| Semantic Similarity | CLIP ViT-B/32 |
+| Captioning | BLIP Captioner |
+
+---
+
+## Benchmark Results
+
+| Benchmark | Key Metric | Value |
+|-----------|-----------|-------|
+| Flickr30k (GT vs Generated) | ROC-AUC | 0.5374 |
+| Flickr30k | GT Mean Faithfulness | 0.890 |
+| Flickr30k | Gen Mean Faithfulness | 0.877 |
+| POPE (Binary Hallucination Labels) | VQA Accuracy | 86.0% |
+| POPE | ROC-AUC | **0.814** |
+| POPE | Avg Precision | 0.739 |
+
+POPE ROC-AUC of **0.814** confirms the faithfulness metric has strong discriminative
+power for predicting hallucinations against human-annotated ground-truth labels.
+
+---
+
+## Installation
+
+```bash
+git clone https://github.com/PraneethVempati/capstone-t2i-faithfulness-checker.git
+cd capstone-t2i-faithfulness-checker
+pip install -r requirements.txt
+```
+
+---
+
+## Running the App
+
+``` python app.py ```
+
+Or run the notebook:
+``` jupyter notebook notebooks/capstone_final.ipynb ```
+
+The Gradio interface will launch with five tabs:
+
+- Single Prompt Evaluation — generate and score any image
+- Multi-Image Self-Consistency — variance-based uncertainty signal
+- POPE Benchmark — binary hallucination label evaluation
+- OK-VQA Benchmark — VQA pipeline validation
+- Large-Scale Flickr30k — GT vs Generated comparison
+
+---
+
+## Project Structure
+
+capstone-t2i-faithfulness-checker/
+├── app.py                     # Full Gradio application
+├── requirements.txt           # Dependencies
+├── README.md                  # This file
 ├── notebooks/
-│   ├── 01_single_image_evaluation.ipynb
-│   └── 02_benchmark_validation.ipynb
-│
-├── data/
-│   └── README.md
-│
-├── docs/
-│   ├── proposal.pdf
-│   └── presentation.pdf
-│
-└── reports/
-    └── final_report.pdf
-
+│   └── capstone_final.ipynb  # Final notebook
+├── assets/                    # Result plots and diagrams
+└── reports/                   # Mid-project review and final report
 
 
 ---
 
-## Folder Descriptions
+## References
 
-### `src/`
-
-Contains the core implementation code.
-
-- `generation.py`  
-  Implements single-image generation using diffusion models.
-
-- `faithfulness.py`  
-  Implements structured faithfulness checks using VQA-based verification.
-
-- `metrics.py`  
-  Implements auxiliary metrics such as:
-  - CLIP prompt–image similarity
-  - Caption agreement metrics
-
-- `benchmark.py`  
-  Implements validation experiments comparing:
-  - Faithfulness scores on ground-truth images
-  - Faithfulness scores on generated images from the same captions
+- Hu et al., TIFA: Text-to-Image Faithfulness Evaluation with QA. ICCV 2023.
+- Ghosh et al., GenEval: Object-Focused T2I Alignment. NeurIPS 2023.
+- Radford et al., CLIP: Learning Transferable Visual Models. ICML 2021.
+- Liu et al., Survey on Hallucination in Vision-Language Models. arXiv 2024.
+- Li et al., POPE: Evaluating Object Hallucination in LVLMs. EMNLP 2023.
 
 ---
-
-### `notebooks/`
-
-Contains interactive Jupyter notebooks for experimentation.
-
-- `01_single_image_evaluation.ipynb`  
-  Demonstrates single-image generation and faithfulness evaluation.
-
-- `02_benchmark_validation.ipynb`  
-  Runs validation experiments on caption–image datasets and analyzes score behavior.
-
----
-
-### `data/`
-
-Contains dataset-related notes and instructions.
-
-Datasets are not stored directly in the repository due to size constraints. Instead, datasets are loaded via Hugging Face Datasets during experiments.
-
-The `README.md` in this folder describes:
-- Dataset choices
-- Column mappings (image, caption)
-- Benchmark configuration
-
----
-
-### `docs/`
-
-Contains supporting documentation:
-- Project proposal
-- Presentation slides
-- Additional design notes
-
----
-
-### `reports/`
-
-Contains final and intermediate reports submitted during the semester.
-
----
-
-## How to Navigate the Repository
-
-1. Start with this README for project context.
-2. Review the `docs/` folder for the project proposal and presentation materials.
-3. Explore the `src/` directory for implementation details.
-4. Use the notebooks in `notebooks/` to reproduce experiments.
-5. Refer to `benchmark.py` to understand how evaluation scores are validated.
-
----
-
-## Evaluation Philosophy
-
-This project emphasizes **construct validity** and empirical backing of evaluation metrics.
-
-Faithfulness scores are not assumed to be accurate by default. Instead, they are validated by:
-
-- Comparing evaluator behavior on ground-truth caption–image pairs.
-- Comparing scores between real and generated images.
-- Analyzing correlation and distribution differences.
-
-All evaluation metrics are treated as proxy signals and interpreted conservatively.
-
----
-
-## Requirements
-
-Core dependencies include:
-
-- PyTorch
-- Diffusers
-- Transformers
-- Datasets
-- Gradio
-- Matplotlib
-
-See `requirements.txt` for details.
-
----
-
-## Current Status
-
-The repository currently includes:
-
-- Working single-image evaluation pipeline.
-- Structured faithfulness checks.
-- CLIP-based semantic alignment metrics.
-- Initial benchmark validation framework.
-
-Further work includes:
-- Expanding hallucination taxonomy.
-- Refining claim extraction.
-- Performing large-scale validation experiments.
-- Reporting statistical analysis.
-
----
-
-## Collaborators
-
-Instructor and advisor have been added as collaborators to this repository.
