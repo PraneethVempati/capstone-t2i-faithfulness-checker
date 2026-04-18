@@ -1,0 +1,14 @@
+gradio
+diffusers
+transformers
+accelerate
+safetensors
+pillow
+datasets
+matplotlib
+sentencepiece
+scikit-learn
+scipy
+pandas
+torch
+torchvision
